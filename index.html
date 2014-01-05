@@ -32,8 +32,15 @@
       </div>
       <div class="row details">
 	<div class="col-md-6">
-	  <div class="filename">Filename: Debbiedoes.wmv</div>
-	  <div class="status">Computing...</div>
+	  <div class="filename">Filename: <%- file.name %></div>
+	  <div class="hash">
+	    <strong>Megahash</strong>:
+	    <% if (!hash) { %>
+	    <span>Computing...</span>
+	    <% } else { %>
+	    <%- hash %>
+	    <% } %>
+	  </div>
 	</div>
 	<div class="col-md-5 iterations">
 	  <div class="row">

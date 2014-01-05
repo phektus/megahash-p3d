@@ -85,6 +85,7 @@ $(function() {
 	    if(!files || files.length === 0) {
 		return;
 	    }
+	    console.log(files[0]);
 	    Items.create({
 		file: files[0]
 	    });
