@@ -5,7 +5,8 @@ $(function() {
 	    return {
 		file: null,
 		hash: null,
-		iterations: 0
+		iterations: 0,
+		reader: null
 	    };
 	},
 
@@ -19,27 +20,34 @@ $(function() {
 	generateHash: function() {
 	    var that = this;
 	    var file = that.get('file');
-	    var reader = new FileReader();
+	    var reader = that.get('reader');
+	    
 
-	    console.log('Generating hash');
+	    console.log('Generating hash for file:', file);
 	    if(!file) return;
-
-	    reader.onload = (function(myFile, that) {
-		return function(e) {
-		    that.set({
+	    
+	    reader = new FileReader();
+	    reader.onload = function() {
+		that.set({
 			hash: binl_md5(
 			    reader.result,
 			    reader.result.length
 			)
 		    });
-		};
-	    })(file, this);
+		    console.log('hash:',
+				that.get('hash'));
+	    };
+	    
+	    reader.onprogress = function(e) {
+		console.log('progress:', e);
+	    };
 
 	    reader.onerror = function(err) {
 		console.error('Could not read file:', err);
 	    }; // end onerror
 
-	    reader.readAsBinaryString(file);
+	    reader.readAsDataURL(file);
+	    console.log('reader:', reader);
 
 	} // end generateHash()
 
@@ -82,6 +90,15 @@ $(function() {
 	el: $('#megahash-app'),
 
 	initialize: function() {
+
+	    // check for file api support
+	    if (!window.File || 
+		!window.FileReader) {
+		alert('File APIs are not fully supported in this browser. Please use latest Mozilla Firefox or Google Chrome.');
+		throw new Error('File API not supported');
+		return;
+	    }
+
 	    this.listenTo(
 		Items,
 		'add',
@@ -111,8 +128,8 @@ $(function() {
 	    if(!files || files.length === 0) {
 		return;
 	    }
-	    file = files[0];
-	    console.log('Got file:', files);
+	    file = files.item(0);
+
 	    Items.create({
 		file: file
 	    });
