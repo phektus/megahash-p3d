@@ -5,29 +5,20 @@ $(function() {
 	    return {
 		file: null,
 		hash: null,
-		iterations: 0,
-		reader: null
+		iterations: 0
 	    };
-	},
-
-	initialize: function() {
-	    this.on(
-		'change:file', 
-		this.generateHash
-	    );
 	},
 
 	generateHash: function() {
 	    var that = this;
 	    var file = that.get('file');
-	    var reader = that.get('reader');
-	    
+	    var reader = new FileReader();
 
-	    console.log('Generating hash for file:', file);
-	    if(!file) return;
+	    console.log('Hashing file:', file);
 	    
-	    reader = new FileReader();
-	    reader.onload = function() {
+	    reader.onloadend = function() {
+		console.log('Result:', reader.result);
+		/*
 		that.set({
 			hash: binl_md5(
 			    reader.result,
@@ -36,16 +27,9 @@ $(function() {
 		    });
 		    console.log('hash:',
 				that.get('hash'));
+		*/
 	    };
 	    
-	    reader.onprogress = function(e) {
-		console.log('progress:', e);
-	    };
-
-	    reader.onerror = function(err) {
-		console.error('Could not read file:', err);
-	    }; // end onerror
-
 	    reader.readAsDataURL(file);
 	    console.log('reader:', reader);
 
@@ -113,33 +97,45 @@ $(function() {
 	    'click #cancel-hash' : 'cancelHash'
 	},
 
-	render: function() {
-	    
-	},
-
 	addItem: function(e) {
 	    console.log('Choosing file');
 	    $('#choose-file').click();
 	}, // end addItem
 
 	uploadFile: function(e) {
-	    var files = e.target.files;
-	    var file;
-	    if(!files || files.length === 0) {
+	    console.log('event:', 
+			e.target.files[0]);
+	    if(!e.target.files || 
+	       e.target.files.length === 0) {
 		return;
 	    }
-	    file = files.item(0);
+	    var file = e.target.files[0];
 
-	    Items.create({
+	    var item = Items.create({
 		file: file
 	    });
+	    var reader = new FileReader();
+	    
+	    reader.onloadend = function() {
+		console.log('Result:', reader.result);
+		var hash = binl_md5(
+		    reader.result,
+		    reader.result.length
+		);
+		console.log('Got hash:', hash);
+		item.set('hash', hash);
+	    };
+	    
+	    reader.readAsBinaryString(file);
+
+	    
 	}, // end uploadFile
 
 	onAddItem: function(item) {
 	    var view = new ItemView({ 
 		model:item
 	    });
-	    console.log('Added item on collection', view.render().el);
+
 	    this.$('#all-items').append(
 		view.render().el
 	    );
